@@ -4,7 +4,7 @@
     // Function to update labels of text fields
     Materialize.updateTextFields = function() {
       if (console.warn) {
-        console.warn("Materialize.updateTextFields should no longer be needed and is deprecated");
+        
       }
     };
 

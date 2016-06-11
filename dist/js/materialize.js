@@ -1,5 +1,5 @@
 /*!
- * Materialize v0.97.6 (http://materializecss.com)
+ * Materialize v0.98 (http://materializecss.com)
  * Copyright 2014-2015 Materialize
  * MIT License (https://raw.githubusercontent.com/Dogfalo/materialize/master/LICENSE)
  */
@@ -455,7 +455,7 @@ if ($) {
     return this;
   };
 
-  $.fn.dropdown = function (option) {
+  $.fn.dropdown = function (options) {
     var defaults = {
       inDuration: 300,
       outDuration: 225,
@@ -463,220 +463,242 @@ if ($) {
       hover: false,
       gutter: 0, // Spacing from edge
       belowOrigin: false,
-      alignment: 'left'
+      alignment: 'left',
+      stopPropagation: false
     };
 
-    this.each(function(){
-    var origin = $(this);
-    var options = $.extend({}, defaults, option);
-    var isFocused = false;
-
-    // Dropdown menu
-    var activates = $("#"+ origin.attr('data-activates'));
-
-    function updateOptions() {
-      if (origin.data('induration') !== undefined)
-        options.inDuration = origin.data('inDuration');
-      if (origin.data('outduration') !== undefined)
-        options.outDuration = origin.data('outDuration');
-      if (origin.data('constrainwidth') !== undefined)
-        options.constrain_width = origin.data('constrainwidth');
-      if (origin.data('hover') !== undefined)
-        options.hover = origin.data('hover');
-      if (origin.data('gutter') !== undefined)
-        options.gutter = origin.data('gutter');
-      if (origin.data('beloworigin') !== undefined)
-        options.belowOrigin = origin.data('beloworigin');
-      if (origin.data('alignment') !== undefined)
-        options.alignment = origin.data('alignment');
+    // Open dropdown.
+    if (options === "open") {
+      this.each(function() {
+        $(this).trigger('open');
+      });
+      return false;
     }
 
-    updateOptions();
+    // Close dropdown.
+    if (options === "close") {
+      this.each(function() {
+        $(this).trigger('close');
+      });
+      return false;
+    }
 
-    // Attach dropdown to its activator
-    origin.after(activates);
+    this.each(function(){
+      var origin = $(this);
+      var options = $.extend({}, defaults, options);
+      var isFocused = false;
 
-    /*
-      Helper function to position and resize dropdown.
-      Used in hover and click handler.
-    */
-    function placeDropdown(eventType) {
-      // Check for simultaneous focus and click events.
-      if (eventType === 'focus') {
-        isFocused = true;
+      // Dropdown menu
+      var activates = $("#"+ origin.attr('data-activates'));
+
+      function updateOptions() {
+        if (origin.data('induration') !== undefined)
+          options.inDuration = origin.data('induration');
+        if (origin.data('outduration') !== undefined)
+          options.outDuration = origin.data('outduration');
+        if (origin.data('constrainwidth') !== undefined)
+          options.constrain_width = origin.data('constrainwidth');
+        if (origin.data('hover') !== undefined)
+          options.hover = origin.data('hover');
+        if (origin.data('gutter') !== undefined)
+          options.gutter = origin.data('gutter');
+        if (origin.data('beloworigin') !== undefined)
+          options.belowOrigin = origin.data('beloworigin');
+        if (origin.data('alignment') !== undefined)
+          options.alignment = origin.data('alignment');
+        if (origin.data('stoppropagation') !== undefined)
+          options.stopPropagation = origin.data('stoppropagation');
       }
 
-      // Check html data attributes
       updateOptions();
 
-      // Set Dropdown state
-      activates.addClass('active');
-      origin.addClass('active');
+      // Attach dropdown to its activator
+      origin.after(activates);
 
-      // Constrain width
-      if (options.constrain_width === true) {
-        activates.css('width', origin.outerWidth());
+      /*
+        Helper function to position and resize dropdown.
+        Used in hover and click handler.
+      */
+      function placeDropdown(eventType) {
+        // Check for simultaneous focus and click events.
+        if (eventType === 'focus') {
+          isFocused = true;
+        }
 
-      } else {
-        activates.css('white-space', 'nowrap');
-      }
+        // Check html data attributes
+        updateOptions();
 
-      // Offscreen detection
-      var windowHeight = window.innerHeight;
-      var originHeight = origin.innerHeight();
-      var offsetLeft = origin.offset().left;
-      var offsetTop = origin.offset().top - $(window).scrollTop();
-      var currAlignment = options.alignment;
-      var gutterSpacing = 0;
-      var leftPosition = 0;
+        // Set Dropdown state
+        activates.addClass('active');
+        origin.addClass('active');
 
-      // Below Origin
-      var verticalOffset = 0;
-      if (options.belowOrigin === true) {
-        verticalOffset = originHeight;
-      }
+        // Constrain width
+        if (options.constrain_width === true) {
+          activates.css('width', origin.outerWidth());
 
-      // Check for scrolling positioned container.
-      var scrollOffset = 0;
-      var wrapper = origin.parent();
-      if (!wrapper.is('body') && wrapper[0].scrollHeight > wrapper[0].clientHeight) {
-        scrollOffset = wrapper[0].scrollTop;
-      }
-
-
-      if (offsetLeft + activates.innerWidth() > $(window).width()) {
-        // Dropdown goes past screen on right, force right alignment
-        currAlignment = 'right';
-
-      } else if (offsetLeft - activates.innerWidth() + origin.innerWidth() < 0) {
-        // Dropdown goes past screen on left, force left alignment
-        currAlignment = 'left';
-      }
-      // Vertical bottom offscreen detection
-      if (offsetTop + activates.innerHeight() > windowHeight) {
-        // If going upwards still goes offscreen, just crop height of dropdown.
-        if (offsetTop + originHeight - activates.innerHeight() < 0) {
-          var adjustedHeight = windowHeight - offsetTop - verticalOffset;
-          activates.css('max-height', adjustedHeight);
         } else {
-          // Flow upwards.
-          if (!verticalOffset) {
-            verticalOffset += originHeight;
+          activates.css('white-space', 'nowrap');
+        }
+
+        // Offscreen detection
+        var windowHeight = window.innerHeight;
+        var originHeight = origin.innerHeight();
+        var offsetLeft = origin.offset().left;
+        var offsetTop = origin.offset().top - $(window).scrollTop();
+        var currAlignment = options.alignment;
+        var gutterSpacing = 0;
+        var leftPosition = 0;
+
+        // Below Origin
+        var verticalOffset = 0;
+        if (options.belowOrigin === true) {
+          verticalOffset = originHeight;
+        }
+
+        // Check for scrolling positioned container.
+        var scrollOffset = 0;
+        var wrapper = origin.parent();
+        if (!wrapper.is('body') && wrapper[0].scrollHeight > wrapper[0].clientHeight) {
+          scrollOffset = wrapper[0].scrollTop;
+        }
+
+
+        if (offsetLeft + activates.innerWidth() > $(window).width()) {
+          // Dropdown goes past screen on right, force right alignment
+          currAlignment = 'right';
+
+        } else if (offsetLeft - activates.innerWidth() + origin.innerWidth() < 0) {
+          // Dropdown goes past screen on left, force left alignment
+          currAlignment = 'left';
+        }
+        // Vertical bottom offscreen detection
+        if (offsetTop + activates.innerHeight() > windowHeight) {
+          // If going upwards still goes offscreen, just crop height of dropdown.
+          if (offsetTop + originHeight - activates.innerHeight() < 0) {
+            var adjustedHeight = windowHeight - offsetTop - verticalOffset;
+            activates.css('max-height', adjustedHeight);
+          } else {
+            // Flow upwards.
+            if (!verticalOffset) {
+              verticalOffset += originHeight;
+            }
+            verticalOffset -= activates.innerHeight();
           }
-          verticalOffset -= activates.innerHeight();
         }
+
+        // Handle edge alignment
+        if (currAlignment === 'left') {
+          gutterSpacing = options.gutter;
+          leftPosition = origin.position().left + gutterSpacing;
+        }
+        else if (currAlignment === 'right') {
+          var offsetRight = origin.position().left + origin.outerWidth() - activates.outerWidth();
+          gutterSpacing = -options.gutter;
+          leftPosition =  offsetRight + gutterSpacing;
+        }
+
+        // Position dropdown
+        activates.css({
+          position: 'absolute',
+          top: origin.position().top + verticalOffset + scrollOffset,
+          left: leftPosition
+        });
+
+
+        // Show dropdown
+        activates.stop(true, true).css('opacity', 0)
+          .slideDown({
+            queue: false,
+            duration: options.inDuration,
+            easing: 'easeOutCubic',
+            complete: function() {
+              $(this).css('height', '');
+            }
+          })
+          .animate( {opacity: 1}, {queue: false, duration: options.inDuration, easing: 'easeOutSine'});
       }
 
-      // Handle edge alignment
-      if (currAlignment === 'left') {
-        gutterSpacing = options.gutter;
-        leftPosition = origin.position().left + gutterSpacing;
-      }
-      else if (currAlignment === 'right') {
-        var offsetRight = origin.position().left + origin.outerWidth() - activates.outerWidth();
-        gutterSpacing = -options.gutter;
-        leftPosition =  offsetRight + gutterSpacing;
+      function hideDropdown() {
+        // Check for simultaneous focus and click events.
+        isFocused = false;
+        activates.fadeOut(options.outDuration);
+        activates.removeClass('active');
+        origin.removeClass('active');
+        setTimeout(function() { activates.css('max-height', ''); }, options.outDuration);
       }
 
-      // Position dropdown
-      activates.css({
-        position: 'absolute',
-        top: origin.position().top + verticalOffset + scrollOffset,
-        left: leftPosition
-      });
-
-
-      // Show dropdown
-      activates.stop(true, true).css('opacity', 0)
-        .slideDown({
-        queue: false,
-        duration: options.inDuration,
-        easing: 'easeOutCubic',
-        complete: function() {
-          $(this).css('height', '');
-        }
-      })
-        .animate( {opacity: 1}, {queue: false, duration: options.inDuration, easing: 'easeOutSine'});
-    }
-
-    function hideDropdown() {
-      // Check for simultaneous focus and click events.
-      isFocused = false;
-      activates.fadeOut(options.outDuration);
-      activates.removeClass('active');
-      origin.removeClass('active');
-      setTimeout(function() { activates.css('max-height', ''); }, options.outDuration);
-    }
-
-    // Hover
-    if (options.hover) {
-      var open = false;
-      origin.unbind('click.' + origin.attr('id'));
-      // Hover handler to show dropdown
-      origin.on('mouseenter', function(e){ // Mouse over
-        if (open === false) {
-          placeDropdown();
-          open = true;
-        }
-      });
-      origin.on('mouseleave', function(e){
-        // If hover on origin then to something other than dropdown content, then close
-        var toEl = e.toElement || e.relatedTarget; // added browser compatibility for target element
-        if(!$(toEl).closest('.dropdown-content').is(activates)) {
-          activates.stop(true, true);
-          hideDropdown();
-          open = false;
-        }
-      });
-
-      activates.on('mouseleave', function(e){ // Mouse out
-        var toEl = e.toElement || e.relatedTarget;
-        if(!$(toEl).closest('.dropdown-button').is(origin)) {
-          activates.stop(true, true);
-          hideDropdown();
-          open = false;
-        }
-      });
-
-    // Click
-    } else {
-      // Click handler to show dropdown
-      origin.unbind('click.' + origin.attr('id'));
-      origin.bind('click.'+origin.attr('id'), function(e){
-        if (!isFocused) {
-          if ( origin[0] == e.currentTarget &&
-               !origin.hasClass('active') &&
-               ($(e.target).closest('.dropdown-content').length === 0)) {
-            e.preventDefault(); // Prevents button click from moving window
-            placeDropdown('click');
+      // Hover
+      if (options.hover) {
+        var open = false;
+        origin.unbind('click.' + origin.attr('id'));
+        // Hover handler to show dropdown
+        origin.on('mouseenter', function(e){ // Mouse over
+          if (open === false) {
+            placeDropdown();
+            open = true;
           }
-          // If origin is clicked and menu is open, close menu
-          else if (origin.hasClass('active')) {
+        });
+        origin.on('mouseleave', function(e){
+          // If hover on origin then to something other than dropdown content, then close
+          var toEl = e.toElement || e.relatedTarget; // added browser compatibility for target element
+          if(!$(toEl).closest('.dropdown-content').is(activates)) {
+            activates.stop(true, true);
             hideDropdown();
-            $(document).unbind('click.'+ activates.attr('id') + ' touchstart.' + activates.attr('id'));
+            open = false;
           }
-          // If menu open, add click close handler to document
-          if (activates.hasClass('active')) {
-            $(document).bind('click.'+ activates.attr('id') + ' touchstart.' + activates.attr('id'), function (e) {
-              if (!activates.is(e.target) && !origin.is(e.target) && (!origin.find(e.target).length) ) {
-                hideDropdown();
-                $(document).unbind('click.'+ activates.attr('id') + ' touchstart.' + activates.attr('id'));
+        });
+
+        activates.on('mouseleave', function(e){ // Mouse out
+          var toEl = e.toElement || e.relatedTarget;
+          if(!$(toEl).closest('.dropdown-button').is(origin)) {
+            activates.stop(true, true);
+            hideDropdown();
+            open = false;
+          }
+        });
+
+        // Click
+      } else {
+        // Click handler to show dropdown
+        origin.unbind('click.' + origin.attr('id'));
+        origin.bind('click.'+origin.attr('id'), function(e){
+          if (!isFocused) {
+            if ( origin[0] == e.currentTarget &&
+                 !origin.hasClass('active') &&
+                 ($(e.target).closest('.dropdown-content').length === 0)) {
+              e.preventDefault(); // Prevents button click from moving window
+              if (options.stopPropagation) {
+                e.stopPropagation();
               }
-            });
+              placeDropdown('click');
+            }
+            // If origin is clicked and menu is open, close menu
+            else if (origin.hasClass('active')) {
+              hideDropdown();
+              $(document).unbind('click.'+ activates.attr('id') + ' touchstart.' + activates.attr('id'));
+            }
+            // If menu open, add click close handler to document
+            if (activates.hasClass('active')) {
+              $(document).bind('click.'+ activates.attr('id') + ' touchstart.' + activates.attr('id'), function (e) {
+                if (!activates.is(e.target) && !origin.is(e.target) && (!origin.find(e.target).length) ) {
+                  hideDropdown();
+                  $(document).unbind('click.'+ activates.attr('id') + ' touchstart.' + activates.attr('id'));
+                }
+              });
+            }
           }
-        }
+        });
+
+      } // End else
+
+      // Listen to open and close event - useful for select component
+      origin.on('open', function(e, eventType) {
+        placeDropdown(eventType);
       });
+      origin.on('close', hideDropdown);
 
-    } // End else
 
-    // Listen to open and close event - useful for select component
-    origin.on('open', function(e, eventType) {
-      placeDropdown(eventType);
     });
-    origin.on('close', hideDropdown);
-
-
-   });
   }; // End dropdown plugin
 
   $(document).ready(function(){
@@ -706,16 +728,17 @@ if ($) {
         ready: undefined,
         complete: undefined,
         dismissible: true,
-        starting_top: '4%'
-      },
-      $modal = $(this);
+        starting_top: '4%',
+        ending_top: '10%'
+      };
+      var $modal = $(this);
 
       if ($modal.hasClass('open')) {
         return;
       }
 
-      overlayID = _generateID();
-      $overlay = $('<div class="lean-overlay"></div>');
+      var overlayID = _generateID();
+      var $overlay = $('<div class="lean-overlay"></div>');
       lStack = (++_stack);
 
       // Store a reference of the overlay
@@ -771,7 +794,7 @@ if ($) {
       else {
         $.Velocity.hook($modal, "scaleX", 0.7);
         $modal.css({ top: options.starting_top });
-        $modal.velocity({top: "10%", opacity: 1, scaleX: '1'}, {
+        $modal.velocity({top: options.ending_top, opacity: 1, scaleX: '1'}, {
           duration: options.in_duration,
           queue: false,
           ease: "easeOutCubic",
@@ -793,10 +816,10 @@ if ($) {
       var defaults = {
         out_duration: 250,
         complete: undefined
-      },
-      $modal = $(this),
-      overlayID = $modal.data('overlay-id'),
-      $overlay = $('#' + overlayID);
+      };
+      var $modal = $(this);
+      var overlayID = $modal.data('overlay-id');
+      var $overlay = $('#' + overlayID);
       $modal.removeClass('open');
 
       options = $.extend(defaults, options);
@@ -1203,7 +1226,12 @@ $(document).ready(function(){
 }( jQuery ));;(function ($) {
 
   var methods = {
-    init : function() {
+    init : function(options) {
+      var defaults = {
+        onShow: null
+      };
+      options = $.extend(defaults, options);
+
       return this.each(function() {
 
       // For each set of tabs, we want to keep track of
@@ -1222,7 +1250,7 @@ $(document).ready(function(){
 
       // If no match is found, use the first link or any with class 'active' as the initial active tab.
       if ($active.length === 0) {
-          $active = $(this).find('li.tab a.active').first();
+        $active = $(this).find('li.tab a.active').first();
       }
       if ($active.length === 0) {
         $active = $(this).find('li.tab a').first();
@@ -1270,6 +1298,11 @@ $(document).ready(function(){
           return;
         }
 
+        // Act as regular link if target attribute is specified.
+        if (!!$(this).attr("target")) {
+          return;
+        }
+
         $tabs_width = $this.width();
         $tab_width = Math.max($tabs_width, $this[0].scrollWidth) / $links.length;
 
@@ -1296,6 +1329,9 @@ $(document).ready(function(){
 
         if ($content !== undefined) {
           $content.show();
+          if (typeof(options.onShow) === "function") {
+            options.onShow.call(this, $content);
+          }
         }
 
         // Update indicator
@@ -1337,8 +1373,8 @@ $(document).ready(function(){
 }( jQuery ));
 ;(function ($) {
     $.fn.tooltip = function (options) {
-        var timeout = null,
-        margin = 5;
+      var timeout = null,
+      margin = 5;
 
       // Defaults
       var defaults = {
@@ -1347,7 +1383,7 @@ $(document).ready(function(){
 
       // Remove tooltip from the activator
       if (options === "remove") {
-        this.each(function(){
+        this.each(function() {
           $('#' + $(this).attr('data-tooltip-id')).remove();
           $(this).off('mouseenter.tooltip mouseleave.tooltip');
         });
@@ -2058,7 +2094,7 @@ $(document).ready(function(){
           $(window).resize( function() {
             if (window.innerWidth > 992) {
               // Close menu if window is resized bigger than 992 and user has fixed sidenav
-              if ($('#sidenav-overlay').length != 0 && menuOut) {
+              if ($('#sidenav-overlay').length !== 0 && menuOut) {
                 removeMenu(true);
               }
               else {
@@ -2144,7 +2180,9 @@ $(document).ready(function(){
         var menuOut = false;
 
         dragTarget.on('click', function(){
-          removeMenu();
+          if (menuOut) {
+            removeMenu();
+          }
         });
 
         dragTarget.hammer({
@@ -2234,13 +2272,14 @@ $(document).ready(function(){
             if (options.edge === 'left') {
               // If velocityX <= 0.3 then the user is flinging the menu closed so ignore menuOut
               if ((menuOut && velocityX <= 0.3) || velocityX < -0.5) {
-                if (leftPos != 0) {
+                // Return menu to open
+                if (leftPos !== 0) {
                   menu_id.velocity({'translateX': [0, leftPos]}, {duration: 300, queue: false, easing: 'easeOutQuad'});
                 }
 
-                // menu_id.css({'translateX': 0});
                 $('#sidenav-overlay').velocity({opacity: 1 }, {duration: 50, queue: false, easing: 'easeOutQuad'});
                 dragTarget.css({width: '50%', right: 0, left: ''});
+                menuOut = true;
               }
               else if (!menuOut || velocityX > 0.3) {
                 // Enable Scrolling
@@ -2259,9 +2298,14 @@ $(document).ready(function(){
             }
             else {
               if ((menuOut && velocityX >= -0.3) || velocityX > 0.5) {
-                menu_id.velocity({'translateX': [0, rightPos]}, {duration: 300, queue: false, easing: 'easeOutQuad'});
+                // Return menu to open
+                if (rightPos !== 0) {
+                  menu_id.velocity({'translateX': [0, rightPos]}, {duration: 300, queue: false, easing: 'easeOutQuad'});
+                }
+
                 $('#sidenav-overlay').velocity({opacity: 1 }, {duration: 50, queue: false, easing: 'easeOutQuad'});
                 dragTarget.css({width: '50%', right: '', left: 0});
+                menuOut = true;
               }
               else if (!menuOut || velocityX < -0.3) {
                 // Enable Scrolling
@@ -2528,6 +2572,12 @@ $(document).ready(function(){
 	 * @returns {jQuery}
 	 */
 	$.scrollSpy = function(selector, options) {
+	  var defaults = {
+			throttle: 100,
+			scrollOffset: 200 // offset - 200 allows elements near bottom of page to scroll
+    };
+    options = $.extend(defaults, options);
+
 		var visible = [];
 		selector = $(selector);
 		selector.each(function(i, element) {
@@ -2537,16 +2587,9 @@ $(document).ready(function(){
 		  $('a[href="#' + $(element).attr('id') + '"]').click(function(e) {
 		    e.preventDefault();
 		    var offset = $(this.hash).offset().top + 1;
-
-//          offset - 200 allows elements near bottom of page to scroll
-			
-	    	$('html, body').animate({ scrollTop: offset - 200 }, {duration: 400, queue: false, easing: 'easeOutCubic'});
-			
+	    	$('html, body').animate({ scrollTop: offset - options.scrollOffset }, {duration: 400, queue: false, easing: 'easeOutCubic'});
 		  });
 		});
-		options = options || {
-			throttle: 100
-		};
 
 		offset.top = options.offsetTop || 0;
 		offset.right = options.offsetRight || 0;
@@ -2645,31 +2688,34 @@ $(document).ready(function(){
 
     // Function to update labels of text fields
     Materialize.updateTextFields = function() {
-      var input_selector = 'input[type=text], input[type=password], input[type=email], input[type=url], input[type=tel], input[type=number], input[type=search], textarea';
-      $(input_selector).each(function(index, element) {
-        if ($(element).val().length > 0 || element.autofocus ||$(this).attr('placeholder') !== undefined || $(element)[0].validity.badInput === true) {
-          $(this).siblings('label, i').addClass('active');
-        }
-        else {
-          $(this).siblings('label, i').removeClass('active');
-        }
-      });
+      if (console.warn) {
+        
+      }
     };
 
     // Text based inputs
     var input_selector = 'input[type=text], input[type=password], input[type=email], input[type=url], input[type=tel], input[type=number], input[type=search], textarea';
 
-    // Add active if form auto complete
-    $(document).on('change', input_selector, function () {
-      if($(this).val().length !== 0 || $(this).attr('placeholder') !== undefined) {
-        $(this).siblings('label').addClass('active');
-      }
-      validate_field($(this));
+    // Highlight icon prefix on focus
+    $(document).on('focus', input_selector, function () {
+      $(this).siblings('.prefix').addClass('active');
     });
 
-    // Add active if input element has been pre-populated on document ready
-    $(document).ready(function() {
-      Materialize.updateTextFields();
+    // Remove highlight from icon prefix on blur
+    $(document).on('blur', input_selector, function () {
+      $(this).siblings('.prefix').removeClass('active');
+    });
+
+    // Add active if form auto complete
+    $(document).on('input', input_selector, function () {
+      var $this = $(this);
+
+      if (!this.value) {
+        $this.removeAttr('value');
+      } else {
+        $this.attr('value', this.value);
+      }
+      validate_field($this);
     });
 
     // HTML DOM FORM RESET handling
@@ -2677,11 +2723,6 @@ $(document).ready(function(){
       var formReset = $(e.target);
       if (formReset.is('form')) {
         formReset.find(input_selector).removeClass('valid').removeClass('invalid');
-        formReset.find(input_selector).each(function () {
-          if ($(this).attr('value') === '') {
-            $(this).siblings('label, i').removeClass('active');
-          }
-        });
 
         // Reset select
         formReset.find('select.initialized').each(function () {
@@ -2689,23 +2730,6 @@ $(document).ready(function(){
           formReset.siblings('input.select-dropdown').val(reset_text);
         });
       }
-    });
-
-    // Add active when element has focus
-    $(document).on('focus', input_selector, function () {
-      $(this).siblings('label, i').addClass('active');
-    });
-
-    $(document).on('blur', input_selector, function () {
-      var $inputElement = $(this);
-      if ($inputElement.val().length === 0 && $inputElement[0].validity.badInput !== true && $inputElement.attr('placeholder') === undefined) {
-        $inputElement.siblings('label, i').removeClass('active');
-      }
-
-      if ($inputElement.val().length === 0 && $inputElement[0].validity.badInput !== true && $inputElement.attr('placeholder') !== undefined) {
-        $inputElement.siblings('i').removeClass('active');
-      }
-      validate_field($inputElement);
     });
 
     window.validate_field = function(object) {
@@ -2742,7 +2766,7 @@ $(document).ready(function(){
         $(this).addClass('tabbed');
         var $this = $(this);
         $this.one('blur', function(e) {
-          
+
           $(this).removeClass('tabbed');
         });
         return;
@@ -2762,9 +2786,11 @@ $(document).ready(function(){
 
       var fontFamily = $textarea.css('font-family');
       var fontSize = $textarea.css('font-size');
+      var lineHeight = $textarea.css('line-height');
 
       if (fontSize) { hiddenDiv.css('font-size', fontSize); }
       if (fontFamily) { hiddenDiv.css('font-family', fontFamily); }
+      if (lineHeight) { hiddenDiv.css('line-height', lineHeight); }
 
       if ($textarea.attr('wrap') === "off") {
         hiddenDiv.css('overflow-wrap', "normal")
@@ -2913,6 +2939,88 @@ $(document).ready(function(){
         thumb.removeClass('active');
       }
     });
+
+    /**************************
+     * Auto complete plugin  *
+     *************************/
+    $.fn.autocomplete = function (options) {
+      // Defaults
+      var defaults = {
+        data: {}
+      };
+
+      options = $.extend(defaults, options);
+
+      return this.each(function() {
+        var $input = $(this);
+        var data = options.data,
+            $inputDiv = $input.closest('.input-field'); // Div to append on
+
+        // Check if data isn't empty
+        if (!$.isEmptyObject(data)) {
+          // Create autocomplete element
+          var $autocomplete = $('<ul class="autocomplete-content dropdown-content"></ul>');
+
+          // Append autocomplete element
+          if ($inputDiv.length) {
+            $inputDiv.append($autocomplete); // Set ul in body
+          } else {
+            $input.after($autocomplete);
+          }
+
+          var highlight = function(string, $el) {
+            var img = $el.find('img');
+            var matchStart = $el.text().toLowerCase().indexOf("" + string.toLowerCase() + ""),
+                matchEnd = matchStart + string.length - 1,
+                beforeMatch = $el.text().slice(0, matchStart),
+                matchText = $el.text().slice(matchStart, matchEnd + 1),
+                afterMatch = $el.text().slice(matchEnd + 1);
+            $el.html("<span>" + beforeMatch + "<span class='highlight'>" + matchText + "</span>" + afterMatch + "</span>");
+            if (img.length) {
+              $el.prepend(img);
+            }
+          };
+
+          // Perform search
+          $input.on('keyup', function (e) {
+            // Capture Enter
+            if (e.which === 13) {
+              $autocomplete.find('li').first().click();
+              return;
+            }
+
+            var val = $input.val().toLowerCase();
+            $autocomplete.empty();
+
+            // Check if the input isn't empty
+            if (val !== '') {
+              for(var key in data) {
+                if (data.hasOwnProperty(key) &&
+                    key.toLowerCase().indexOf(val) !== -1 &&
+                    key.toLowerCase() !== val) {
+                  var autocompleteOption = $('<li></li>');
+                  if(!!data[key]) {
+                    autocompleteOption.append('<img src="'+ data[key] +'" class="right circle"><span>'+ key +'</span>');
+                  } else {
+                    autocompleteOption.append('<span>'+ key +'</span>');
+                  }
+                  $autocomplete.append(autocompleteOption);
+
+                  highlight(val, autocompleteOption);
+                }
+              }
+            }
+          });
+
+          // Set input value
+          $autocomplete.on('click', 'li', function () {
+            $input.val($(this).text().trim());
+            $autocomplete.empty();
+          });
+        }
+      });
+    };
+
   }); // End of $(document).ready
 
   /*******************
@@ -3255,7 +3363,7 @@ $(document).ready(function(){
         // which slide is active and its associated content
         var $this = $(this);
         var $slider = $this.find('ul.slides').first();
-        var $slides = $slider.find('li');
+        var $slides = $slider.find('> li');
         var $active_index = $slider.find('.active').index();
         var $active, $indicators, $interval;
         if ($active_index != -1) { $active = $slides.eq($active_index); }
@@ -3586,22 +3694,293 @@ $(document).ready(function(){
 
   });
 }( jQuery ));;(function ($) {
-  $(document).ready(function() {
+  var chipsHandleEvents = false;
+  var materialChipsDefaults = {
+    data: [],
+    placeholder: '',
+    secondaryPlaceholder: '',
+  };
 
-    $(document).on('click.chip', '.chip .material-icons', function (e) {
-      $(this).parent().remove();
+  $(document).ready(function(){
+    // Handle removal of static chips.
+    $(document).on('click', '.chip .close', function(e){
+      var $chips = $(this).closest('.chips');
+      if ($chips.data('initialized')) {
+        return;
+      }
+      $(this).closest('.chip').remove();
     });
-
   });
+
+  $.fn.material_chip = function (options) {
+    var self = this;
+    this.$el = $(this);
+    this.$document = $(document);
+    this.SELS = {
+      CHIPS: '.chips',
+      CHIP: '.chip',
+      INPUT: 'input',
+      DELETE: '.material-icons',
+      SELECTED_CHIP: '.selected',
+    };
+
+    if ('data' === options) {
+      return this.$el.data('chips');
+    }
+
+    if ('options' === options) {
+      return this.$el.data('options');
+    }
+
+    this.$el.data('options', $.extend({}, materialChipsDefaults, options));
+
+    // Initialize
+    this.init = function() {
+      var i = 0;
+      var chips;
+      self.$el.each(function(){
+        var $chips = $(this);
+        if ($chips.data('initialized')) {
+          // Prevent double initialization.
+          return;
+        }
+        var options = $chips.data('options');
+        if (!options.data || !options.data instanceof Array) {
+          options.data = [];
+        }
+        $chips.data('chips', options.data);
+        $chips.data('index', i);
+        $chips.data('initialized', true);
+
+        if (!$chips.hasClass(self.SELS.CHIPS)) {
+          $chips.addClass('chips');
+        }
+
+        self.chips($chips);
+        i++;
+      });
+    };
+
+    this.handleEvents = function(){
+      var SELS = self.SELS;
+
+      self.$document.on('click', SELS.CHIPS, function(e){
+        $(e.target).find(SELS.INPUT).focus();
+      });
+
+      self.$document.on('click', SELS.CHIP, function(e){
+        $(SELS.CHIP).removeClass('selected');
+        $(this).toggleClass('selected');
+      });
+
+      self.$document.on('keydown', function(e){
+        if ($(e.target).is('input, textarea')) {
+          return;
+        }
+
+        // delete
+        var $chip = self.$document.find(SELS.CHIP + SELS.SELECTED_CHIP);
+        var $chips = $chip.closest(SELS.CHIPS);
+        var length = $chip.siblings(SELS.CHIP).length;
+        var index;
+
+        if (!$chip.length) {
+          return;
+        }
+
+        if (e.which === 8 || e.which === 46) {
+          e.preventDefault();
+          var chipsIndex = $chips.data('index');
+
+          index = $chip.index();
+          self.deleteChip(chipsIndex, index, $chips);
+
+          var selectIndex = null;
+          if ((index + 1) < length) {
+            selectIndex = index;
+          } else if (index === length || (index + 1) === length) {
+            selectIndex = length - 1;
+          }
+
+          if (selectIndex < 0) selectIndex = null;
+
+          if (null !== selectIndex) {
+            self.selectChip(chipsIndex, selectIndex, $chips);
+          }
+          if (!length) $chips.find('input').focus();
+
+        // left
+        } else if (e.which === 37) {
+          index = $chip.index() - 1;
+          if (index < 0) {
+            return;
+          }
+          $(SELS.CHIP).removeClass('selected');
+          self.selectChip($chips.data('index'), index, $chips);
+
+        // right
+        } else if (e.which === 39) {
+          index = $chip.index() + 1;
+          $(SELS.CHIP).removeClass('selected');
+          if (index > length) {
+            $chips.find('input').focus();
+            return;
+          }
+          self.selectChip($chips.data('index'), index, $chips);
+        }
+      });
+
+      self.$document.on('focusin', SELS.CHIPS + ' ' + SELS.INPUT, function(e){
+        $(e.target).closest(SELS.CHIPS).addClass('focus');
+        $(SELS.CHIP).removeClass('selected');
+      });
+
+      self.$document.on('focusout', SELS.CHIPS + ' ' + SELS.INPUT, function(e){
+        $(e.target).closest(SELS.CHIPS).removeClass('focus');
+      });
+
+      self.$document.on('keydown', SELS.CHIPS + ' ' + SELS.INPUT, function(e){
+        var $target = $(e.target);
+        var $chips = $target.closest(SELS.CHIPS);
+        var chipsIndex = $chips.data('index');
+        var chipsLength = $chips.children(SELS.CHIP).length;
+
+        // enter
+        if (13 === e.which) {
+          e.preventDefault();
+          self.addChip(chipsIndex, {tag: $target.val()}, $chips);
+          $target.val('');
+          return;
+        }
+
+        // delete or left
+         if ((8 === e.keyCode || 37 === e.keyCode) && '' === $target.val() && chipsLength) {
+          self.selectChip(chipsIndex, chipsLength - 1, $chips);
+          $target.blur();
+          return;
+        }
+      });
+
+      self.$document.on('click', SELS.CHIPS + ' ' + SELS.DELETE, function(e) {
+        var $target = $(e.target);
+        var $chips = $target.closest(SELS.CHIPS);
+        var $chip = $target.closest(SELS.CHIP);
+        e.stopPropagation();
+        self.deleteChip(
+          $chips.data('index'),
+          $chip.index(),
+          $chips
+        );
+        $chips.find('input').focus();
+      });
+    };
+
+    this.chips = function($chips) {
+      var html = '';
+      var options = $chips.data('options');
+      $chips.data('chips').forEach(function(elem){
+        html += self.renderChip(elem);
+      });
+      html += '<input class="input" placeholder="">';
+      $chips.html(html);
+      self.setPlaceholder($chips);
+    };
+
+    this.renderChip = function(elem) {
+      if (!elem.tag) return;
+
+      var html = '<div class="chip">' + elem.tag;
+      if (elem.image) {
+        html += ' <img src="' + elem.image + '"> ';
+      }
+      html += '<i class="material-icons close">close</i>';
+      html += '</div>';
+      return html;
+    };
+
+    this.setPlaceholder = function($chips) {
+      var options = $chips.data('options');
+      if ($chips.data('chips').length && options.placeholder) {
+        $chips.find('input').prop('placeholder', options.placeholder);
+      } else if (!$chips.data('chips').length && options.secondaryPlaceholder) {
+        $chips.find('input').prop('placeholder', options.secondaryPlaceholder);
+      }
+    };
+
+    this.isValid = function($chips, elem) {
+      var chips = $chips.data('chips');
+      var exists = false;
+      for (var i=0; i < chips.length; i++) {
+        if (chips[i].tag === elem.tag) {
+            exists = true;
+            return;
+        }
+      }
+      return '' !== elem.tag && !exists;
+    };
+
+    this.addChip = function(chipsIndex, elem, $chips) {
+      if (!self.isValid($chips, elem)) {
+        return;
+      }
+      var options = $chips.data('options');
+      var chipHtml = self.renderChip(elem);
+      $chips.data('chips').push(elem);
+      $(chipHtml).insertBefore($chips.find('input'));
+      $chips.trigger('chip.add', elem);
+      self.setPlaceholder($chips);
+    };
+
+    this.deleteChip = function(chipsIndex, chipIndex, $chips) {
+      var chip = $chips.data('chips')[chipIndex];
+      $chips.find('.chip').eq(chipIndex).remove();
+      $chips.data('chips').splice(chipIndex, 1);
+      $chips.trigger('chip.delete', chip);
+      self.setPlaceholder($chips);
+    };
+
+    this.selectChip = function(chipsIndex, chipIndex, $chips) {
+      var $chip = $chips.find('.chip').eq(chipIndex);
+      if ($chip && false === $chip.hasClass('selected')) {
+        $chip.addClass('selected');
+        $chips.trigger('chip.select', $chips.data('chips')[chipIndex]);
+      }
+    };
+
+    this.getChipsElement = function(index, $chips) {
+      return $chips.eq(index);
+    };
+
+    // init
+    this.init();
+
+    if (!chipsHandleEvents) {
+      this.handleEvents();
+      chipsHandleEvents = true;
+    }
+  };
 }( jQuery ));;(function ($) {
   $.fn.pushpin = function (options) {
-
+    // Defaults
     var defaults = {
       top: 0,
       bottom: Infinity,
       offset: 0
     };
+
+    // Remove pushpin event and classes
+    if (options === "remove") {
+      this.each(function () {
+        if (id = $(this).data('pushpin-id')) {
+          $(window).off('scroll.' + id);
+          $(this).removeData('pushpin-id').removeClass('pin-top pinned pin-bottom').removeAttr('style');
+        }
+      });
+      return false;
+    }
+
     options = $.extend(defaults, options);
+
 
     $index = 0;
     return this.each(function() {
@@ -3640,6 +4019,7 @@ $(document).ready(function(){
         });
       }
 
+      $(this).data('pushpin-id', $uniqueId);
       updateElements($this, $(window).scrollTop());
       $(window).on('scroll.' + $uniqueId, function () {
         var $scrolled = $(window).scrollTop() + options.offset;
@@ -3742,8 +4122,15 @@ $(document).ready(function(){
 }( jQuery ));
 ;(function ($) {
   // Image transition function
-  Materialize.fadeInImage =  function(selector){
-    var element = $(selector);
+  Materialize.fadeInImage =  function(selectorOrEl) {
+    var element;
+    if (typeof(selectorOrEl) === 'string') {
+      element = $(selectorOrEl);
+    } else if (typeof(selectorOrEl) === 'object') {
+      element = selectorOrEl;
+    } else {
+      return;
+    }
     element.css({opacity: 0});
     $(element).velocity({opacity: 1}, {
         duration: 650,
@@ -3773,13 +4160,21 @@ $(document).ready(function(){
   };
 
   // Horizontal staggered list
-  Materialize.showStaggeredList = function(selector) {
+  Materialize.showStaggeredList = function(selectorOrEl) {
+    var element;
+    if (typeof(selectorOrEl) === 'string') {
+      element = $(selectorOrEl);
+    } else if (typeof(selectorOrEl) === 'object') {
+      element = selectorOrEl;
+    } else {
+      return;
+    }
     var time = 0;
-    $(selector).find('li').velocity(
+    element.find('li').velocity(
         { translateX: "-100px"},
         { duration: 0 });
 
-    $(selector).find('li').each(function() {
+    element.find('li').each(function() {
       $(this).velocity(
         { opacity: "1", translateX: "0"},
         { duration: 800, delay: time, easing: [60, 10] });
@@ -3927,10 +4322,10 @@ $(document).ready(function(){
               if (windowScroll > (elementOffset + offset)) {
                 if (value.done !== true) {
                   if (typeof(callback) === 'function') {
-                    callback.call(this);
+                    callback.call(this, currentElement);
                   } else if (typeof(callback) === 'string') {
                     var callbackFunc = new Function(callback);
-                    callbackFunc();
+                    callbackFunc(currentElement);
                   }
                   value.done = true;
                 }
@@ -6591,6 +6986,8 @@ Picker.extend( 'pickadate', DatePicker )
         var view = $(this);
         // Don't double initialize.
         if (view.hasClass('initialized')) {
+          // Redraw carousel.
+          $(this).trigger('carouselNext', [.000001]);
           return true;
         }
 
